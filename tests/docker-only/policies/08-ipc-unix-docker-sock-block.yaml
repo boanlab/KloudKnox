@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+# Scenario 8 (Part II §15 — IPC unix-socket extension): block the Docker
+# daemon socket via the unix-IPC sub-domain, complementing the file-path
+# block in scenario 2. A compromised container that tries to drive the
+# daemon through the socket receives EPERM on connect() instead of only
+# being denied open() on the bind-mount.
+# Expected: `docker exec e2e-alpine socat - UNIX-CONNECT:/var/run/docker.sock`
+#           → EPERM + alert with policyName=e2e-ipc-unix-docker-sock-block.
+#
+# AppArmor enforces the `unix (connect)` rule natively; the alert path is
+# driven by the security_unix_stream_connect kprobe (event id 1015). The
+# scenario is gated on ENABLE_IPC_SCENARIO=1 because the trigger needs
+# socat inside the container, which alpine:3.19 doesn't ship by default.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: e2e-ipc-unix-docker-sock-block
+  namespace: docker
+spec:
+  selector:
+    app: alpine
+    kloudknox.e2e: docker-only
+  ipc:
+    unix:
+      - type: stream
+        path: /var/run/docker.sock
+        permission:
+          - connect
+        action: Block
+      - type: stream
+        path: /run/docker.sock
+        permission:
+          - connect
+        action: Block
+  action: Block

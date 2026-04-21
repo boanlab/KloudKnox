@@ -1,0 +1,19 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-file-path-block-fs
+spec:
+  selector:
+    container: ubuntu-1
+  file:
+    - path: /etc/hostname
+      fromSource:
+      - path: /bin/cat
+      - path: /usr/bin/cat
+  action: Block
+
+# test
+# $ cat /etc/hostname              # from /bin/cat → block
+# cat: /etc/hostname: Permission denied
+# $ head -n 1 /etc/hostname        # /bin/head not in fromSource → allow
+# <ubuntu-1 pod hostname>

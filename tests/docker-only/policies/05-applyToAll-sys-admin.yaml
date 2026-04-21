@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+# Scenario 5 (features.md §30.2): applyToAll regression.
+# No selector — every test container receives this policy. We block reads of
+# /etc/hostname because the file exists in every test image.
+#
+# NOTE: earlier versions used `process: /bin/mount Block` to exercise the
+# process-Block path. That can't be enforced reliably with the current
+# profile header (see the comment in 01-nginx-hardening.yaml for the
+# AppArmor `file,` vs `deny x,` issue). File Block exercises the
+# applyToAll flag equally well.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: e2e-applyToAll-mount
+  namespace: docker
+spec:
+  applyToAll: true
+  file:
+    - path: /etc/hostname
+      action: Block
+  action: Audit

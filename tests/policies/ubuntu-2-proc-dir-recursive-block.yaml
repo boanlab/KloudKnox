@@ -1,0 +1,17 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-2-proc-dir-recursive-block
+spec:
+  selector:
+    container: ubuntu-2
+  process:
+    - dir: /usr/
+      recursive: true
+  action: Block
+
+# test
+# $ env
+# bash: /usr/bin/env: Permission denied
+# $ whoami
+# bash: /usr/bin/whoami: Permission denied

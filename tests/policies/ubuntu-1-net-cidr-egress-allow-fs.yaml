@@ -1,0 +1,23 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-net-cidr-egress-allow-fs
+spec:
+  selector:
+    container: ubuntu-1
+  network:
+    - direction: egress
+      ipBlock:
+        cidr: 1.1.1.1/32
+      fromSource:
+        - path: /usr/bin/dig
+  action: Allow
+
+# test
+# $ dig @1.1.1.1 google.com
+# ;; ANSWER SECTION:
+# google.com.   A   142.250.xxx.xxx
+#
+# $ dig @8.8.8.8 google.com
+# ;; communications error to 8.8.8.8#53: timed out
+# ;; no servers could be reached

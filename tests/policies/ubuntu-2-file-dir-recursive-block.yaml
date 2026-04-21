@@ -1,0 +1,27 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-2-file-dir-recursive-block
+spec:
+  selector:
+    container: ubuntu-2
+  file:
+    - dir: /run/secrets/kubernetes.io/serviceaccount/
+      recursive: true
+  action: Block
+
+# test
+# $ cat /run/secrets/kubernetes.io/serviceaccount/token
+# cat: /run/secrets/kubernetes.io/serviceaccount/token: Permission denied
+# $ curl https://$KUBERNETES_PORT_443_TCP_ADDR/api --insecure --header "Authorization: Bearer $(cat /run/secrets/kubernetes.io/serviceaccount/token)"
+# cat: /run/secrets/kubernetes.io/serviceaccount/token: Permission denied
+# {
+#   "kind": "Status",
+#   "apiVersion": "v1",
+#   "metadata": {},
+#   "status": "Failure",
+#   "message": "forbidden: User \"system:anonymous\" cannot get path \"/api\"",
+#   "reason": "Forbidden",
+#   "details": {},
+#   "code": 403
+# }

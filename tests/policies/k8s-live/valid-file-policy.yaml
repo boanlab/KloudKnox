@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# Valid KloudKnoxPolicy with a file rule (dir with required trailing slash).
+# Tests that the operator reconciler accepts file rules and sets status=Active.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: k8slive-valid-file-test
+spec:
+  selector:
+    container: ubuntu-1
+  file:
+    - dir: /tmp/
+  action: Audit

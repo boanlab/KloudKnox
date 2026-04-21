@@ -1,0 +1,16 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-2-net-peer-ingress-audit
+spec:
+  selector:
+    container: ubuntu-2
+  network:
+    - direction: ingress
+      selector:
+        container: ubuntu-1
+  action: Audit
+
+# test (from ubuntu-1)
+# $ curl http://ubuntu-2
+# <!DOCTYPE html PUBLIC... (audit)

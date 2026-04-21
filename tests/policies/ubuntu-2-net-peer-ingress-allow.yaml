@@ -1,0 +1,23 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-2-net-peer-ingress-allow
+spec:
+  selector:
+    container: ubuntu-2
+  network:
+    - direction: ingress
+      selector:
+        container: ubuntu-1
+      ports:
+        - protocol: TCP
+          port: 80
+  action: Allow
+
+# test (from ubuntu-1)
+# $ curl http://ubuntu-2:80
+# <!DOCTYPE html PUBLIC...
+#
+# test (from ubuntu-3)
+# $ curl http://ubuntu-2:80
+# curl: (7) Failed to connect to ubuntu-2 port

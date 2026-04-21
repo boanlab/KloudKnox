@@ -1,0 +1,15 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-2-proc-dir-recursive-audit
+spec:
+  selector:
+    container: ubuntu-2
+  process:
+    - dir: /usr/
+      recursive: true
+  action: Audit
+
+# test
+# $ env                            # /usr/bin/env (audit)
+# $ whoami                         # /usr/bin/whoami (audit)

@@ -1,0 +1,23 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: group-1-proc-path-block-fs
+spec:
+  selector:
+    group: group-1
+  process:
+    - path: /bin/ls
+      fromSource:
+      - path: /bin/dash
+      - path: /usr/bin/dash
+    - path: /usr/bin/ls
+      fromSource:
+      - path: /bin/dash
+      - path: /usr/bin/dash
+  action: Block
+
+# test
+# $ dash -c ls
+# dash: 1: ls: Permission denied
+# $ dash -c "cat /etc/hostname"
+# <ubuntu-1 pod hostname>

@@ -1,0 +1,18 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-per-rule-action-mixed
+spec:
+  selector:
+    container: ubuntu-3
+  file:
+    - dir: /credentials/
+      action: Allow
+    - path: /etc/hostname
+  action: Block
+
+# test
+# $ cat /credentials/password      # per-rule Allow overrides global Block
+# password file
+# $ cat /etc/hostname              # global Block
+# cat: /etc/hostname: Permission denied

@@ -1,0 +1,19 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-file-dir-allow-fs
+spec:
+  selector:
+    container: ubuntu-3
+  file:
+    - dir: /credentials/
+      fromSource:
+      - path: /bin/cat
+      - path: /usr/bin/cat
+  action: Allow
+
+# test
+# $ cat /credentials/password
+# password file
+# $ cat /etc/hostname
+# cat: /etc/hostname: Permission denied

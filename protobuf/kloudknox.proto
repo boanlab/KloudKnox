@@ -1,0 +1,177 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 BoanLab @ Dankook University
+
+syntax = "proto3";
+
+package protobuf;
+
+option go_package = "github.com/boanlab/KloudKnox/protobuf";
+
+// ============================ //
+// == System Event Messages  == //
+// ============================ //
+
+// Event represents a raw system event captured by the eBPF monitor.
+message Event {
+  // Metadata
+  uint64 Timestamp = 11; // nanoseconds since epoch
+  uint32 CPUID     = 12; // CPU on which the event occurred
+  uint32 SeqNum    = 13; // monotonic per-CPU sequence number
+
+  // Host-level process identifiers (outside the container namespace)
+  int32 HostPPID = 21;
+  int32 HostPID  = 22;
+  int32 HostTID  = 23;
+
+  // Container-namespace process identifiers
+  int32 PPID = 31;
+  int32 PID  = 32;
+  int32 TID  = 33;
+
+  // Credentials
+  uint32 UID = 41;
+  uint32 GID = 42;
+
+  // Syscall information
+  int32  EventID   = 51; // numeric syscall identifier
+  string EventName = 52; // syscall name (e.g., "open", "connect")
+  int32  RetVal    = 53; // raw return value
+  string RetCode   = 54; // human-readable return code (e.g., "SUCCESS", "EPERM")
+
+  // Semantic classification
+  string Source    = 61; // origin subsystem (e.g., "container")
+  string Category  = 62; // activity category (e.g., "File", "Network", "Process")
+  string Operation = 63; // specific operation (e.g., "Read", "Write", "Connect")
+  string Resource  = 64; // target resource (file path, address, etc.)
+  string Data      = 65; // additional context in key=value format
+
+  // Kubernetes / container identity
+  string NodeName      = 71;
+  string NamespaceName = 72;
+  string PodName       = 73;
+  string ContainerName = 74;
+  string Labels        = 75; // pod labels serialized as "key=value,..." pairs
+}
+
+// EventFilter selects which events are delivered on an EventStream.
+// Empty fields match all records. PodName and ContainerName are matched
+// by prefix; all other fields require an exact match.
+message EventFilter {
+  string EventName = 11;
+
+  string Source    = 21;
+  string Category  = 22;
+  string Operation = 23;
+  string Resource  = 24;
+  string Data      = 25;
+
+  string NodeName      = 31;
+  string NamespaceName = 32;
+  string PodName       = 33;
+  string ContainerName = 34;
+  string Labels        = 35;
+}
+
+// ========================= //
+// == Policy Alert Messages == //
+// ========================= //
+
+// Alert is an Event that matched an active enforcement policy.
+// All Event fields are present; the two additional fields carry
+// policy enforcement context.
+message Alert {
+  // Metadata
+  uint64 Timestamp = 11;
+  uint32 CPUID     = 12;
+  uint32 SeqNum    = 13;
+
+  // Host-level process identifiers
+  int32 HostPPID = 21;
+  int32 HostPID  = 22;
+  int32 HostTID  = 23;
+
+  // Container-namespace process identifiers
+  int32 PPID = 31;
+  int32 PID  = 32;
+  int32 TID  = 33;
+
+  // Credentials
+  uint32 UID = 41;
+  uint32 GID = 42;
+
+  // Syscall information
+  int32  EventID   = 51;
+  string EventName = 52;
+  int32  RetVal    = 53;
+  string RetCode   = 54;
+
+  // Semantic classification
+  string Source    = 61;
+  string Category  = 62;
+  string Operation = 63;
+  string Resource  = 64;
+  string Data      = 65;
+
+  // Kubernetes / container identity
+  string NodeName      = 71;
+  string NamespaceName = 72;
+  string PodName       = 73;
+  string ContainerName = 74;
+  string Labels        = 75;
+
+  // Policy enforcement context
+  string PolicyName   = 81; // name of the policy that triggered the alert
+  string PolicyAction = 82; // action taken: "Audit" or "Block"
+}
+
+// AlertFilter selects which alerts are delivered on an AlertStream.
+// Matching rules are identical to EventFilter.
+message AlertFilter {
+  string EventName = 11;
+
+  string Source    = 21;
+  string Category  = 22;
+  string Operation = 23;
+  string Resource  = 24;
+  string Data      = 25;
+
+  string NodeName      = 31;
+  string NamespaceName = 32;
+  string PodName       = 33;
+  string ContainerName = 34;
+  string Labels        = 35;
+}
+
+// ====================== //
+// == Log Messages      == //
+// ====================== //
+
+// Log carries a single structured log entry emitted by the KloudKnox daemon.
+message Log {
+  uint64 Timestamp = 11; // nanoseconds since epoch
+  string Level     = 21; // severity: "debug", "info", "warn", "error"
+  string Message   = 22; // log message text
+}
+
+// LogFilter selects which log entries are delivered on a LogStream.
+// Set Level to a specific severity to receive only entries at that level.
+// Leave Level empty to receive all entries.
+message LogFilter {
+  string Level = 11;
+}
+
+// =================== //
+// == gRPC Service  == //
+// =================== //
+
+// KloudKnox exposes three server-streaming RPCs for real-time data export.
+service KloudKnox {
+  // EventStream streams raw system events matching the supplied filter.
+  rpc EventStream(EventFilter) returns (stream Event);
+
+  // AlertStream streams policy-enforcement alerts matching the supplied filter.
+  rpc AlertStream(AlertFilter) returns (stream Alert);
+
+  // LogStream streams daemon log entries matching the supplied filter.
+  rpc LogStream(LogFilter) returns (stream Log);
+}

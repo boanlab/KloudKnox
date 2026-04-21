@@ -1,0 +1,159 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-1
+spec:
+  selector:
+    container: ubuntu-1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-2
+spec:
+  selector:
+    container: ubuntu-2
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-3
+spec:
+  selector:
+    container: ubuntu-3
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-4
+spec:
+  selector:
+    container: ubuntu-4
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+# ubuntu-1 / ubuntu-4 run a single sleep as PID 1 — no daemons spawning into
+# AppArmor-narrowed profiles. ubuntu-2 / ubuntu-3 run kk-http-server (single
+# blocking-accept process) to serve :80 for the network-ingress tests. No
+# postStart hook needed — the HTTP listener IS PID 1, so it's up by the
+# time `kubectl wait --for=condition=Ready` returns.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-1
+  labels:
+    deployment: ubuntu-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      group: group-1
+      container: ubuntu-1
+  template:
+    metadata:
+      labels:
+        group: group-1
+        container: ubuntu-1
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/ubuntu-1-container: localhost/kloudknox-default-ubuntu-1-ubuntu-1-container
+    spec:
+      securityContext:
+        sysctls:
+          - name: net.ipv4.ping_group_range
+            value: "1 0"
+      containers:
+        - name: ubuntu-1-container
+          image: boanlab/e2e-workloads:v0.1.0
+          command: ["/usr/bin/sleep", "infinity"]
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN", "SYS_PTRACE"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-2
+  labels:
+    deployment: ubuntu-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      group: group-1
+      container: ubuntu-2
+  template:
+    metadata:
+      labels:
+        group: group-1
+        container: ubuntu-2
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/ubuntu-2-container: localhost/kloudknox-default-ubuntu-2-ubuntu-2-container
+    spec:
+      containers:
+        - name: ubuntu-2-container
+          image: boanlab/e2e-workloads:v0.1.0
+          command: ["/usr/local/bin/kk-http-server", "80"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-3
+  labels:
+    deployment: ubuntu-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      group: group-2
+      container: ubuntu-3
+  template:
+    metadata:
+      labels:
+        group: group-2
+        container: ubuntu-3
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/ubuntu-3-container: localhost/kloudknox-default-ubuntu-3-ubuntu-3-container
+    spec:
+      containers:
+        - name: ubuntu-3-container
+          image: boanlab/e2e-workloads:v0.1.0
+          command: ["/usr/local/bin/kk-http-server", "80"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-4
+  labels:
+    deployment: ubuntu-4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      group: group-2
+      container: ubuntu-4
+  template:
+    metadata:
+      labels:
+        group: group-2
+        container: ubuntu-4
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/ubuntu-4-container: localhost/kloudknox-default-ubuntu-4-ubuntu-4-container
+    spec:
+      containers:
+        - name: ubuntu-4-container
+          image: boanlab/e2e-workloads:v0.1.0
+          command: ["/usr/bin/sleep", "infinity"]

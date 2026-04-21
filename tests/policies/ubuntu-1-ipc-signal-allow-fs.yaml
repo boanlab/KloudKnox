@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+# IPC signal allow-list with fromSource (Part II §12, §17): only kk-signaler
+# is allowed to send SIGTERM/SIGHUP to /usr/bin/sleep; SIGKILL is explicitly
+# blocked regardless of sender.
+#
+# Signal events from security_task_kill fire unconditionally (AppArmor same-
+# profile mediation is permissive), so the "Block SIGKILL" rule is explicit —
+# top-level action: Block is not a signal fallthrough. Mirrors docker-only
+# scenario 7 (tests/docker-only/policies/07-ipc-signal-allow-list.yaml).
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-ipc-signal-allow-fs
+spec:
+  selector:
+    container: ubuntu-1
+  ipc:
+    signal:
+      - permission: send
+        target: /usr/bin/sleep
+        signals:
+          - SIGTERM
+          - SIGHUP
+        fromSource:
+          - path: /usr/local/bin/kk-signaler
+        action: Allow
+      - permission: send
+        target: /usr/bin/sleep
+        signals:
+          - SIGKILL
+        action: Block
+  action: Block

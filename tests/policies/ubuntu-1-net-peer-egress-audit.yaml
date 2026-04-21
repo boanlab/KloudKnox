@@ -1,0 +1,16 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-net-peer-egress-audit
+spec:
+  selector:
+    container: ubuntu-1
+  network:
+    - direction: egress
+      selector:
+        container: ubuntu-2
+  action: Audit
+
+# test
+# $ curl http://ubuntu-2
+# <!DOCTYPE html PUBLIC... (audit)

@@ -1,0 +1,19 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: group-2-file-path-block-fs
+spec:
+  selector:
+    group: group-2
+  file:
+    - path: /secret.txt
+      fromSource:
+      - path: /bin/cat
+      - path: /usr/bin/cat
+  action: Block
+
+# test
+# $ cat /secret.txt
+# cat: /secret.txt: Permission denied
+# $ cat /etc/hostname
+# <ubuntu-4 pod hostname>

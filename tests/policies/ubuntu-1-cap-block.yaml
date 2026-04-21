@@ -1,0 +1,18 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-cap-block
+spec:
+  selector:
+    container: ubuntu-1
+  capability:
+    - name: NET_RAW
+      action: Block
+    - name: NET_ADMIN
+      action: Block
+  action: Block
+
+# test
+# $ ping -c 1 1.1.1.1
+# ping: socktype: SOCK_RAW
+# ping: socket: Operation not permitted

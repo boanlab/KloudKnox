@@ -1,0 +1,698 @@
+# KloudKnox E2E test cases.
+# Schema: see lib/cases.py.
+# Grouped by resource category: process → file → network → capability → ipc → combined.
+# Within each section, ordered alphabetically by policy filename.
+
+# Process
+
+- id: test-01
+  name: group-1 proc-path-allow-fs
+  policy: policies/group-1-proc-path-allow-fs.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "dash -c ls"
+      expect: allowed
+    - pod: ubuntu-1
+      exec: "ls /"
+      expect: blocked
+
+- id: test-02
+  name: group-1 proc-path-block
+  policy: policies/group-1-proc-path-block.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "sleep 1"
+      expect: blocked
+    - pod: ubuntu-2
+      exec: "sleep 1"
+      expect: blocked
+
+- id: test-03
+  name: group-1 proc-path-block-fs
+  policy: policies/group-1-proc-path-block-fs.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "dash -c ls"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "dash -c 'cat /etc/hostname'"
+      expect: allowed
+    - pod: ubuntu-2
+      exec: "dash -c ls"
+      expect: blocked
+
+- id: test-04
+  name: group-2 proc-path-audit
+  policy: policies/group-2-proc-path-audit.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "sleep 1"
+      expect: audited
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: allowed
+    - pod: ubuntu-4
+      exec: "sleep 1"
+      expect: audited
+
+- id: test-05
+  name: ubuntu-1 proc-dir-block
+  policy: policies/ubuntu-1-proc-dir-block.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "route"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-06
+  name: ubuntu-2 proc-dir-recursive-audit
+  policy: policies/ubuntu-2-proc-dir-recursive-audit.yaml
+  steps:
+    - pod: ubuntu-2
+      exec: "env"
+      expect: audited
+    - pod: ubuntu-2
+      exec: "whoami"
+      expect: audited
+
+- id: test-07
+  name: ubuntu-2 proc-dir-recursive-block
+  policy: policies/ubuntu-2-proc-dir-recursive-block.yaml
+  steps:
+    - pod: ubuntu-2
+      exec: "env"
+      expect: blocked
+    - pod: ubuntu-2
+      exec: "whoami"
+      expect: blocked
+
+- id: test-08
+  name: ubuntu-3 proc-dir-allow
+  policy: policies/ubuntu-3-proc-dir-allow.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: blocked
+
+- id: test-09
+  name: ubuntu-3 proc-dir-audit
+  policy: policies/ubuntu-3-proc-dir-audit.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "route"
+      expect: audited
+
+- id: test-10
+  name: ubuntu-3 proc-dir-block
+  policy: policies/ubuntu-3-proc-dir-block.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "route"
+      expect: blocked
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-11
+  name: ubuntu-3 proc-path-allow
+  policy: policies/ubuntu-3-proc-path-allow.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "ls /"
+      expect: blocked
+
+# File
+
+- id: test-12
+  name: group-2 file-path-allow-fs
+  policy: policies/group-2-file-path-allow-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /secret.txt"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: blocked
+    - pod: ubuntu-4
+      exec: "cat /secret.txt"
+      expect: allowed
+
+- id: test-13
+  name: group-2 file-path-audit-fs
+  policy: policies/group-2-file-path-audit-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /secret.txt"
+      expect: audited
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: allowed
+    - pod: ubuntu-4
+      exec: "cat /secret.txt"
+      expect: audited
+
+- id: test-14
+  name: group-2 file-path-block-fs
+  policy: policies/group-2-file-path-block-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /secret.txt"
+      expect: blocked
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: allowed
+    - pod: ubuntu-4
+      exec: "cat /secret.txt"
+      expect: blocked
+
+- id: test-15
+  name: ubuntu-1 file-path-allow
+  policy: policies/ubuntu-1-file-path-allow.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "cat /etc/hostname"
+      expect: allowed
+    - pod: ubuntu-1
+      exec: "cat /etc/passwd"
+      expect: blocked
+
+- id: test-16
+  name: ubuntu-1 file-path-audit
+  policy: policies/ubuntu-1-file-path-audit.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "head -n 1 /etc/passwd"
+      expect: audited
+    - pod: ubuntu-1
+      exec: "echo 'test' >> /secret.txt"
+      expect: audited
+    - pod: ubuntu-1
+      exec: "echo 'test' >> /credentials/password"
+      expect: audited
+
+- id: test-17
+  name: ubuntu-1 file-path-block
+  policy: policies/ubuntu-1-file-path-block.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "cat /etc/passwd"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "echo 'test' >> /secret.txt"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "echo 'test' >> /credentials/password"
+      expect: blocked
+
+- id: test-18
+  name: ubuntu-1 file-path-block-fs
+  policy: policies/ubuntu-1-file-path-block-fs.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "cat /etc/hostname"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "head -n 1 /etc/hostname"
+      expect: allowed
+
+- id: test-19
+  name: ubuntu-2 file-dir-recursive-allow-fs
+  policy: policies/ubuntu-2-file-dir-recursive-allow-fs.yaml
+  steps:
+    - pod: ubuntu-2
+      exec: "cat /credentials/password"
+      expect: allowed
+    - pod: ubuntu-2
+      exec: "cat /credentials/keys/priv.key"
+      expect: allowed
+    - pod: ubuntu-2
+      exec: "cat /etc/hostname"
+      expect: blocked
+
+- id: test-20
+  name: ubuntu-2 file-dir-recursive-audit
+  policy: policies/ubuntu-2-file-dir-recursive-audit.yaml
+  steps:
+    - pod: ubuntu-2
+      exec: "cat /run/secrets/kubernetes.io/serviceaccount/token"
+      expect: audited
+
+- id: test-21
+  name: ubuntu-2 file-dir-recursive-audit-fs
+  policy: policies/ubuntu-2-file-dir-recursive-audit-fs.yaml
+  steps:
+    - pod: ubuntu-2
+      exec: "cat /credentials/password"
+      expect: audited
+    - pod: ubuntu-2
+      exec: "cat /credentials/keys/priv.key"
+      expect: audited
+    - pod: ubuntu-2
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-22
+  name: ubuntu-2 file-dir-recursive-block
+  policy: policies/ubuntu-2-file-dir-recursive-block.yaml
+  steps:
+    - pod: ubuntu-2
+      exec: "cat /run/secrets/kubernetes.io/serviceaccount/token"
+      expect: blocked
+    - pod: ubuntu-2
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-23
+  name: ubuntu-2 file-dir-recursive-block-fs
+  policy: policies/ubuntu-2-file-dir-recursive-block-fs.yaml
+  steps:
+    - pod: ubuntu-2
+      exec: "cat /credentials/password"
+      expect: blocked
+    - pod: ubuntu-2
+      exec: "cat /credentials/keys/priv.key"
+      expect: blocked
+    - pod: ubuntu-2
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-24
+  name: ubuntu-3 file-dir-allow
+  policy: policies/ubuntu-3-file-dir-allow.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: blocked
+
+- id: test-25
+  name: ubuntu-3 file-dir-allow-fs
+  policy: policies/ubuntu-3-file-dir-allow-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: blocked
+
+- id: test-26
+  name: ubuntu-3 file-dir-audit
+  policy: policies/ubuntu-3-file-dir-audit.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: audited
+
+- id: test-27
+  name: ubuntu-3 file-dir-audit-fs
+  policy: policies/ubuntu-3-file-dir-audit-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: audited
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-28
+  name: ubuntu-3 file-dir-block
+  policy: policies/ubuntu-3-file-dir-block.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: blocked
+
+- id: test-29
+  name: ubuntu-3 file-dir-block-fs
+  policy: policies/ubuntu-3-file-dir-block-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: blocked
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-30
+  name: ubuntu-3 file-dir-readonly-allow
+  policy: policies/ubuntu-3-file-dir-readonly-allow.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "cat /credentials/keys/priv.key"
+      expect: blocked
+    - pod: ubuntu-3
+      exec: "echo 'new password' > /credentials/password"
+      expect: blocked
+
+- id: test-31
+  name: ubuntu-3 file-dir-readonly-allow-fs
+  policy: policies/ubuntu-3-file-dir-readonly-allow-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "./readwrite -r /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "./readwrite -w /credentials/password"
+      expect: blocked
+
+- id: test-32
+  name: ubuntu-3 file-dir-readonly-audit
+  policy: policies/ubuntu-3-file-dir-readonly-audit.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "echo 'new password' > /credentials/password"
+      expect: audited
+
+- id: test-33
+  name: ubuntu-3 file-dir-readonly-audit-fs
+  policy: policies/ubuntu-3-file-dir-readonly-audit-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "./readwrite -r /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "./readwrite -w /credentials/password"
+      expect: audited
+
+- id: test-34
+  name: ubuntu-3 file-dir-readonly-block
+  policy: policies/ubuntu-3-file-dir-readonly-block.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "echo 'password' > /credentials/password"
+      expect: blocked
+
+- id: test-35
+  name: ubuntu-3 file-dir-readonly-block-fs
+  policy: policies/ubuntu-3-file-dir-readonly-block-fs.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "./readwrite -r /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "./readwrite -w /credentials/password"
+      expect: blocked
+
+# Network
+
+- id: test-36
+  name: ubuntu-1 net-cidr-egress-allow
+  policy: policies/ubuntu-1-net-cidr-egress-allow.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-1
+      exec: "dig @8.8.4.4 google.com"
+      expect: allowed
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "dig @8.8.8.8 google.com"
+      expect: blocked
+      timeout: 10
+
+- id: test-37
+  name: ubuntu-1 net-cidr-egress-allow-fs
+  policy: policies/ubuntu-1-net-cidr-egress-allow-fs.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-1
+      exec: "dig @1.1.1.1 google.com"
+      expect: allowed
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "dig @8.8.8.8 google.com"
+      expect: blocked
+      timeout: 10
+
+- id: test-38
+  name: ubuntu-1 net-cidr-egress-block
+  policy: policies/ubuntu-1-net-cidr-egress-block.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-1
+      exec: "dig @8.8.4.4 google.com"
+      expect: blocked
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "dig @8.8.8.8 google.com"
+      expect: allowed
+      timeout: 10
+
+- id: test-39
+  name: ubuntu-1 net-cidr-egress-block-fs
+  policy: policies/ubuntu-1-net-cidr-egress-block-fs.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-1
+      exec: "dig @1.1.1.1 google.com"
+      expect: blocked
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "curl http://1.1.1.1"
+      expect: allowed
+      timeout: 10
+
+- id: test-40
+  name: ubuntu-1 net-cidr-egress-except
+  policy: policies/ubuntu-1-net-cidr-egress-except.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-1
+      exec: "dig @8.8.8.8 google.com"
+      expect: allowed
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "dig @8.8.4.4 google.com"
+      expect: blocked
+      timeout: 10
+
+- id: test-41
+  name: ubuntu-1 net-fqdn-egress-allow
+  policy: policies/ubuntu-1-net-fqdn-egress-allow.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null -w '%{http_code}' https://google.com"
+      expect: allowed
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null https://example.com"
+      expect: blocked
+      timeout: 10
+
+- id: test-42
+  name: ubuntu-1 net-fqdn-egress-block
+  policy: policies/ubuntu-1-net-fqdn-egress-block.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null https://example.com"
+      expect: blocked
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null -w '%{http_code}' https://google.com"
+      expect: allowed
+      timeout: 10
+
+- id: test-43
+  name: ubuntu-1 net-peer-egress-allow
+  policy: policies/ubuntu-1-net-peer-egress-allow.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null -w '%{http_code}' http://ubuntu-2"
+      expect: allowed
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null http://ubuntu-3"
+      expect: blocked
+      timeout: 10
+
+- id: test-44
+  name: ubuntu-1 net-peer-egress-audit
+  policy: policies/ubuntu-1-net-peer-egress-audit.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null http://ubuntu-2"
+      expect: audited
+      timeout: 10
+
+- id: test-45
+  name: ubuntu-1 net-peer-egress-block
+  policy: policies/ubuntu-1-net-peer-egress-block.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null http://ubuntu-2"
+      expect: blocked
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null -w '%{http_code}' http://ubuntu-3"
+      expect: allowed
+      timeout: 10
+
+- id: test-46
+  name: ubuntu-1 net-port-udp-egress-block
+  policy: policies/ubuntu-1-net-port-udp-egress-block.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-1
+      exec: "dig @8.8.8.8 google.com"
+      expect: blocked
+      timeout: 10
+    - pod: ubuntu-1
+      exec: "dig +tcp @8.8.8.8 google.com +time=3 +tries=1"
+      expect: allowed
+      timeout: 10
+
+- id: test-47
+  name: ubuntu-2 net-cidr-ingress-block
+  policy: policies/ubuntu-2-net-cidr-ingress-block.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null http://ubuntu-2"
+      expect: blocked
+      timeout: 10
+
+- id: test-48
+  name: ubuntu-2 net-peer-ingress-allow
+  policy: policies/ubuntu-2-net-peer-ingress-allow.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null -w '%{http_code}' http://ubuntu-2:80"
+      expect: allowed
+      timeout: 10
+    - pod: ubuntu-3
+      exec: "curl -s -o /dev/null http://ubuntu-2:80"
+      expect: blocked
+      timeout: 10
+
+- id: test-49
+  name: ubuntu-2 net-peer-ingress-audit
+  policy: policies/ubuntu-2-net-peer-ingress-audit.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null http://ubuntu-2"
+      expect: audited
+      timeout: 10
+
+- id: test-50
+  name: ubuntu-2 net-peer-ingress-block
+  policy: policies/ubuntu-2-net-peer-ingress-block.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "curl -s -o /dev/null http://ubuntu-2:80"
+      expect: blocked
+      timeout: 10
+    - pod: ubuntu-3
+      exec: "curl -s -o /dev/null -w '%{http_code}' http://ubuntu-2:80"
+      expect: allowed
+      timeout: 10
+
+# Capability
+
+- id: test-54
+  name: ubuntu-1 cap-block
+  policy: policies/ubuntu-1-cap-block.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "ping -c 1 -W 2 127.0.0.1"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "iptables -L INPUT -n"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-55
+  name: ubuntu-1 cap-allow-fs
+  policy: policies/ubuntu-1-cap-allow-fs.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "ping -c 1 -W 2 127.0.0.1"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "/usr/local/bin/kk-capraw"
+      expect: allowed
+
+# IPC
+
+- id: test-56
+  name: ubuntu-1 ipc-signal-allow-fs
+  policy: policies/ubuntu-1-ipc-signal-allow-fs.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "sleep 5 & pid=$!; sleep 0.3; kill -KILL $pid 2>/dev/null; wait $pid 2>/dev/null; true"
+      expect: blocked
+    - pod: ubuntu-1
+      exec: "sleep 5 & pid=$!; sleep 0.3; /usr/local/bin/kk-signaler $pid 15; wait $pid 2>/dev/null; true"
+      expect: allowed
+    - pod: ubuntu-1
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-57
+  name: ubuntu-1 ipc-ptrace-audit
+  policy: policies/ubuntu-1-ipc-ptrace-audit.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "strace -o /dev/null /bin/true"
+      expect: audited
+
+# Combined / cross-cutting
+
+- id: test-51
+  name: ubuntu-1 multikey-selector-block
+  policy: policies/ubuntu-1-multikey-selector-block.yaml
+  steps:
+    - pod: ubuntu-1
+      exec: "cat /etc/hostname"
+      expect: blocked
+    - pod: ubuntu-2
+      exec: "cat /etc/hostname"
+      expect: allowed
+
+- id: test-52
+  name: ubuntu-3 combined-file-proc-net
+  policy: policies/ubuntu-3-combined-file-proc-net.yaml
+  tags: [external-network]
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: blocked
+    - pod: ubuntu-3
+      exec: "sleep 1"
+      expect: blocked
+    - pod: ubuntu-3
+      exec: "dig @1.1.1.1 google.com"
+      expect: blocked
+      timeout: 10
+
+- id: test-53
+  name: ubuntu-3 per-rule-action-mixed
+  policy: policies/ubuntu-3-per-rule-action-mixed.yaml
+  steps:
+    - pod: ubuntu-3
+      exec: "cat /credentials/password"
+      expect: allowed
+    - pod: ubuntu-3
+      exec: "cat /etc/hostname"
+      expect: blocked

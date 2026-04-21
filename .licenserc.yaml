@@ -1,0 +1,29 @@
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: BoanLab @ Dankook University
+    content: |
+      SPDX-License-Identifier: Apache-2.0
+
+  paths:
+    - "**/*.go"
+    - "**/Makefile"
+    - "**/Dockerfile"
+
+  paths-ignore:
+    - "protobuf/*"
+    - "KloudKnox/monitor/*_bpfel*"
+    - "KloudKnox/monitor/*_bpfeb*"
+    - "KloudKnox/enforcer/*_bpfel*"
+    - "KloudKnox/enforcer/*_bpfeb*"
+
+  comment: on-failure
+
+dependency:
+  files:
+    - KloudKnox/go.mod
+    - operator-controller/go.mod
+    - protobuf/go.mod
+  excludes:
+    - name: github.com/hashicorp/hcl
+      version: v1.0.0

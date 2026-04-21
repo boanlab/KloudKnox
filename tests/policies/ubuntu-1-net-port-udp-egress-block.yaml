@@ -1,0 +1,22 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-net-port-udp-egress-block
+spec:
+  selector:
+    container: ubuntu-1
+  network:
+    - direction: egress
+      ipBlock:
+        cidr: 0.0.0.0/0
+      ports:
+        - protocol: UDP
+          port: 53
+  action: Block
+
+# test
+# $ dig @8.8.8.8 google.com        # UDP/53 → blocked
+# ;; communications error to 8.8.8.8#53: timed out
+#
+# $ curl -sI http://8.8.8.8        # TCP/80 → allowed
+# HTTP/...

@@ -1,0 +1,17 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-multikey-selector-block
+spec:
+  selector:
+    group: group-1
+    container: ubuntu-1
+  file:
+    - path: /etc/hostname
+  action: Block
+
+# test
+# $ cat /etc/hostname (ubuntu-1)   # both labels match → block
+# cat: /etc/hostname: Permission denied
+# $ cat /etc/hostname (ubuntu-2)   # group-1 but container mismatch → unaffected
+# <ubuntu-2 pod hostname>

@@ -1,0 +1,22 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-net-cidr-egress-except
+spec:
+  selector:
+    container: ubuntu-1
+  network:
+    - direction: egress
+      ipBlock:
+        cidr: 8.8.0.0/16
+        except:
+          - 8.8.4.0/24
+  action: Allow
+
+# test
+# $ dig @8.8.8.8 google.com        # allowed (8.8.0.0/16 minus except)
+# ;; ANSWER SECTION:
+# google.com.   A   142.250.xxx.xxx
+#
+# $ dig @8.8.4.4 google.com        # blocked (8.8.4.0/24 excepted)
+# ;; communications error to 8.8.4.4#53: timed out

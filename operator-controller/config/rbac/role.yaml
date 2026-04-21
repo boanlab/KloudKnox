@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kloudknox-operator-role
+rules:
+- apiGroups:
+  - security.boanlab.com
+  resources:
+  - kloudknoxpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - security.boanlab.com
+  resources:
+  - kloudknoxpolicies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - security.boanlab.com
+  resources:
+  - kloudknoxpolicies/status
+  verbs:
+  - get
+  - patch
+  - update

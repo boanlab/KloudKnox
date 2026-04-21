@@ -1,0 +1,17 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-file-dir-readonly-audit
+spec:
+  selector:
+    container: ubuntu-3
+  file:
+    - dir: /credentials/
+      readOnly: true
+  action: Audit
+
+# test
+# $ cat /credentials/password
+# password file (no log)
+# $ echo "new password" > /credentials/password
+# (nothing is displayed) (audit)

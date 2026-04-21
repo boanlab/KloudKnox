@@ -1,0 +1,14 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-file-dir-audit
+spec:
+  selector:
+    container: ubuntu-3
+  file:
+    - dir: /credentials/
+  action: Audit
+
+# test
+# $ cat /credentials/password
+# password file (audit)

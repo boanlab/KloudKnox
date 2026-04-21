@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+# Scenario 6 (Part I §8, capability extension): block CAP_NET_RAW container-wide.
+# Expected: `docker exec e2e-alpine ping -c 1 1.1.1.1` → EPERM + alert with
+#           policyName=e2e-cap-netraw-block, category=capability.
+#
+# Alerted via the `kprobe/cap_capable` attribution path (event id
+# __SECURITY_CAPABLE); policyMatcher.matchCapability annotates the event and
+# the runtime-enforced EPERM from the capability bounding set trips the ping.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: e2e-cap-netraw-block
+  namespace: docker
+spec:
+  selector:
+    app: alpine
+    kloudknox.e2e: docker-only
+  capability:
+    - name: NET_RAW
+      action: Block
+  action: Block

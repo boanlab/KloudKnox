@@ -1,0 +1,19 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: group-2-file-path-audit-fs
+spec:
+  selector:
+    group: group-2
+  file:
+    - path: /secret.txt
+      fromSource:
+      - path: /bin/cat
+      - path: /usr/bin/cat
+  action: Audit
+
+# test
+# $ cat /secret.txt
+# secret file (audit)
+# $ cat /etc/hostname
+# <ubuntu-4 pod hostname> (no log)

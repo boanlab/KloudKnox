@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# Invalid KloudKnoxPolicy: missing required spec.selector.
+# The CRD schema (minProperties: 1) or the operator validating webhook must
+# reject this at admission time.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: k8slive-invalid-test
+spec:
+  process:
+    - path: /bin/sleep
+  action: Block

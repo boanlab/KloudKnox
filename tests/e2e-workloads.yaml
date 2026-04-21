@@ -1,0 +1,143 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-1
+spec:
+  selector:
+    container: ubuntu-1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-2
+spec:
+  selector:
+    container: ubuntu-2
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-3
+spec:
+  selector:
+    container: ubuntu-3
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-4
+spec:
+  selector:
+    container: ubuntu-4
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-1
+  labels:
+    deployment: ubuntu-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      group: group-1
+      container: ubuntu-1
+  template:
+    metadata:
+      labels:
+        group: group-1
+        container: ubuntu-1
+    spec:
+      securityContext:
+        sysctls:
+          - name: net.ipv4.ping_group_range
+            value: "1 0"
+      containers:
+        - name: ubuntu-1-container
+          image: boanlab/e2e-workloads:v0.1.0
+          command: ["/usr/bin/sleep", "infinity"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-2
+  labels:
+    deployment: ubuntu-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      group: group-1
+      container: ubuntu-2
+  template:
+    metadata:
+      labels:
+        group: group-1
+        container: ubuntu-2
+    spec:
+      containers:
+        - name: ubuntu-2-container
+          image: boanlab/e2e-workloads:v0.1.0
+          command: ["/usr/local/bin/kk-http-server", "80"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-3
+  labels:
+    deployment: ubuntu-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      group: group-2
+      container: ubuntu-3
+  template:
+    metadata:
+      labels:
+        group: group-2
+        container: ubuntu-3
+    spec:
+      containers:
+        - name: ubuntu-3-container
+          image: boanlab/e2e-workloads:v0.1.0
+          command: ["/usr/local/bin/kk-http-server", "80"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-4
+  labels:
+    deployment: ubuntu-4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      group: group-2
+      container: ubuntu-4
+  template:
+    metadata:
+      labels:
+        group: group-2
+        container: ubuntu-4
+    spec:
+      containers:
+        - name: ubuntu-4-container
+          image: boanlab/e2e-workloads:v0.1.0
+          command: ["/usr/bin/sleep", "infinity"]

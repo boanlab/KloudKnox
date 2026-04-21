@@ -1,0 +1,18 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-2-net-cidr-ingress-block
+spec:
+  selector:
+    container: ubuntu-2
+  network:
+    - direction: ingress
+      ipBlock:
+        cidr: 10.0.0.0/8
+  action: Block
+
+# test (from ubuntu-1 — source IP falls in cluster pod CIDR)
+# $ curl http://ubuntu-2
+# curl: (7) Failed to connect to ubuntu-2 port
+#
+# note: CNI (Flannel/Calico) pod CIDR may differ — adjust cidr to match your cluster

@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+# Scenario 3: file + fromSource regression (Part I enforcer integration).
+# The current schema has no `capabilities:` rule type, so the
+# features.md §30.2 "capability-tcpdump" scenario is expressed here as
+# a file-source regression against /etc/shadow read from /bin/cat.
+# Expected: `docker exec e2e-ubuntu cat /etc/shadow` → EPERM + alert.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: e2e-shadow-fromsource-block
+  namespace: docker
+spec:
+  selector:
+    app: ubuntu
+    kloudknox.e2e: docker-only
+  file:
+    - path: /etc/shadow
+      fromSource:
+        - path: /usr/bin/cat
+      action: Block
+  action: Audit

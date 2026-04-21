@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+# IPC ptrace audit (Part II §18): warn on any process attaching a debugger
+# to the pod via ptrace. Audit semantics — the tracer attach succeeds but
+# emits a KloudKnox alert so SOC can follow up.
+#
+# AppArmor enforces the `ptrace (trace, read) peer=<path>` rule natively.
+# Alerts require the security_ptrace_access_check kprobe (event id 1017).
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-ipc-ptrace-audit
+spec:
+  selector:
+    container: ubuntu-1
+  ipc:
+    ptrace:
+      - permission: traceby
+        target: /usr/bin/strace
+        action: Audit
+  action: Allow

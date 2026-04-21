@@ -1,0 +1,28 @@
+# Skipped-success mirror of ci-operator-controller.
+name: ci-operator-controller
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'operator-controller/**'
+      - '.github/workflows/ci-operator-controller.yml'
+      - '.github/workflows/ci-operator-controller-bypass.yml'
+
+jobs:
+  go-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"
+  go-sec:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"
+  go-test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"

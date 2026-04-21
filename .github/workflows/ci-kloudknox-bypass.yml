@@ -1,0 +1,36 @@
+# Skipped-success mirror of ci-kloudknox.
+# Posts identical check names so branch protection required-checks are
+# satisfied on PRs that do not touch KloudKnox paths.
+name: ci-kloudknox
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'KloudKnox/**'
+      - 'protobuf/**'
+      - 'Dockerfile'
+      - '.github/workflows/ci-kloudknox.yml'
+      - '.github/workflows/ci-kloudknox-bypass.yml'
+
+jobs:
+  go-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"
+  go-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"
+  go-sec:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"
+  go-test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "skipped (paths not affected)"

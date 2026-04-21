@@ -1,0 +1,22 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-2-file-dir-recursive-allow-fs
+spec:
+  selector:
+    container: ubuntu-2
+  file:
+    - dir: /credentials/
+      recursive: true
+      fromSource:
+      - path: /bin/cat
+      - path: /usr/bin/cat
+  action: Allow
+
+# test
+# $ cat /credentials/password
+# password file
+# $ cat /credentials/keys/priv.key
+# key file
+# $ cat /etc/hostname
+# cat: /etc/hostname: Permission denied

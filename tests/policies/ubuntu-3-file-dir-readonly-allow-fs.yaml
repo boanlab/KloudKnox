@@ -1,0 +1,19 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-file-dir-readonly-allow-fs
+spec:
+  selector:
+    container: ubuntu-3
+  file:
+    - dir: /credentials/
+      readOnly: true
+      fromSource:
+      - path: /readwrite
+  action: Allow
+
+# test
+# $ ./readwrite -r /credentials/password
+# p
+# $ ./readwrite -w /credentials/password
+# Error! (permission denied)

@@ -1,0 +1,15 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: group-1-proc-path-block
+spec:
+  selector:
+    group: group-1
+  process:
+    - path: /bin/sleep
+    - path: /usr/bin/sleep
+  action: Block
+
+# test
+# $ sleep 1
+# bash: /bin/sleep: Permission denied

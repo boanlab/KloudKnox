@@ -1,0 +1,24 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-file-path-allow
+spec:
+  selector:
+    container: ubuntu-1
+  process:
+    - dir: /bin/
+    - dir: /usr/bin/
+  file:
+    - path: /etc/hostname
+    - path: /plain.txt
+  action: Allow
+
+# test
+# $ cat /etc/hostname
+# ubuntu-1-deployment-xxxxx
+# $ cat /plain.txt
+# plain file
+# $ cat /etc/passwd
+# cat: /etc/passwd: Permission denied
+# $ cat /secret.txt
+# cat: /secret.txt: Permission denied

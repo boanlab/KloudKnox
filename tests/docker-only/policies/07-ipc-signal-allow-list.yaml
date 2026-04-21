@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+# Scenario 7: cross-profile signal allow-list. The attacker targets
+# alpine's PID 1 (/bin/busybox); SIGTERM/SIGHUP are allowed, SIGKILL is
+# explicitly blocked.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: e2e-ipc-signal-allow-list
+  namespace: docker
+spec:
+  selector:
+    app: attacker
+    kloudknox.e2e: docker-only
+  ipc:
+    signal:
+      - permission: send
+        target: /bin/busybox
+        signals:
+          - SIGTERM
+          - SIGHUP
+        action: Allow
+      - permission: send
+        target: /bin/busybox
+        signals:
+          - SIGKILL
+        action: Block
+  action: Block

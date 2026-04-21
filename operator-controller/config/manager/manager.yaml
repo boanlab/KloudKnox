@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kloudknox-operator
+  namespace: kloudknox
+  labels:
+    boanlab.com/app: kloudknox-operator
+spec:
+  selector:
+    matchLabels:
+      boanlab.com/app: kloudknox-operator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        boanlab.com/app: kloudknox-operator
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - command:
+        - /kloudknox-operator
+        args: []
+        image: boanlab/kloudknox-operator:v0.1.0
+        name: kloudknox-operator
+        ports: []
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - "ALL"
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        volumeMounts: []
+      volumes: []
+      serviceAccountName: kloudknox-operator
+      terminationGracePeriodSeconds: 10

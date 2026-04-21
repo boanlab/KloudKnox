@@ -1,0 +1,19 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-file-dir-block-fs
+spec:
+  selector:
+    container: ubuntu-3
+  file:
+    - dir: /credentials/
+      fromSource:
+      - path: /bin/cat
+      - path: /usr/bin/cat
+  action: Block
+
+# test
+# $ cat /credentials/password
+# cat: /credentials/password: Permission denied
+# $ cat /etc/hostname
+# <ubuntu-3 pod hostname>

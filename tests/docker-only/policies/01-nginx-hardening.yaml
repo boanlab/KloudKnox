@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+# Scenario 1 (features.md §30.2): nginx hardening — block reads of sensitive
+# container config state from inside the nginx container.
+#
+# NOTE: an earlier version of this scenario tried `process: /bin/sh Block`,
+# which in principle would trip `deny /bin/sh x,` in the rendered AppArmor
+# profile. In practice the header emits a blanket `file,` rule (granting
+# rwmlkx on every path, including transition qualifiers), and AppArmor's
+# deny-semantics cannot subtract transition qualifiers from a `file,`-class
+# allow (deny rules only accept plain `x`, which doesn't override `ix`/`px`/
+# `cx`/`ux`). Exec of the denied binary therefore succeeds and no alert
+# fires. A file Block on a read-only path exercises the same policy path
+# (Block + AppArmor deny + kprobe matchFileOpen) without that limitation.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: e2e-nginx-hardening
+  namespace: docker
+spec:
+  selector:
+    app: nginx
+    kloudknox.e2e: docker-only
+  file:
+    - path: /etc/nginx/nginx.conf
+      action: Block
+  action: Audit

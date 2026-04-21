@@ -1,0 +1,15 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: group-2-proc-path-audit
+spec:
+  selector:
+    group: group-2
+  process:
+    - path: /bin/sleep
+    - path: /usr/bin/sleep
+  action: Audit
+
+# test
+# $ sleep 1
+# ... sleep ... (audit)

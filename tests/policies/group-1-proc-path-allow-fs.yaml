@@ -1,0 +1,23 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: group-1-proc-path-allow-fs
+spec:
+  selector:
+    group: group-1
+  process:
+    - path: /bin/ls
+      fromSource:
+      - path: /bin/dash
+      - path: /usr/bin/dash
+    - path: /usr/bin/ls
+      fromSource:
+      - path: /bin/dash
+      - path: /usr/bin/dash
+  action: Allow
+
+# test
+# $ dash -c ls                     # /bin/ls from /bin/dash → allow
+# bin  boot  dev  ...
+# $ ls /                           # /bin/ls from bash → block (not in fromSource)
+# bash: /bin/ls: Permission denied

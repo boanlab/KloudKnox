@@ -1,0 +1,20 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-file-path-audit
+spec:
+  selector:
+    container: ubuntu-1
+  file:
+    - path: /etc/passwd
+    - path: /secret.txt
+    - path: /credentials/password
+  action: Audit
+
+# test
+# $ head -n 1 /etc/passwd
+# root:x:0:0:root:/root:/bin/bash (audit)
+# $ echo "test" >> /secret.txt
+# (nothing is displayed) (audit)
+# $ echo "test" >> /credentials/password
+# (nothing is displayed) (audit)

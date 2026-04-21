@@ -1,0 +1,58 @@
+name: ci-operator-controller
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'operator-controller/**'
+      - '.github/workflows/ci-operator-controller.yml'
+      - '.github/workflows/ci-operator-controller-bypass.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'operator-controller/**'
+      - '.github/workflows/ci-operator-controller.yml'
+      - '.github/workflows/ci-operator-controller-bypass.yml'
+
+jobs:
+  go-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+      - name: Check go-fmt
+        run: make gofmt
+        working-directory: operator-controller
+
+  go-sec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+      - name: Run Gosec Security Scanner
+        run: make gosec
+        working-directory: operator-controller
+
+  go-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+      - name: Run unit tests
+        run: make test
+        working-directory: operator-controller
+
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build operator-controller Image
+        working-directory: operator-controller
+        run: make build-image

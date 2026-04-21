@@ -1,0 +1,25 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-combined-file-proc-net
+spec:
+  selector:
+    container: ubuntu-3
+  file:
+    - path: /credentials/password
+  process:
+    - path: /bin/sleep
+    - path: /usr/bin/sleep
+  network:
+    - direction: egress
+      ipBlock:
+        cidr: 1.1.1.1/32
+  action: Block
+
+# test
+# $ cat /credentials/password      # file rule
+# cat: /credentials/password: Permission denied
+# $ sleep 1                        # process rule
+# bash: /bin/sleep: Permission denied
+# $ dig @1.1.1.1 google.com        # network rule
+# ;; communications error to 1.1.1.1#53: timed out

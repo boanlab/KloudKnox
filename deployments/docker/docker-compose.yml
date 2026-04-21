@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 BoanLab @ Dankook University
+#
+# docker-compose deployment for KloudKnox in Docker mode.
+#
+# Usage (from a repo checkout):
+#   cd deployments/docker
+#   sudo mkdir -p /etc/kloudknox/policies
+#   sudo docker compose up -d
+#
+# Or copy this file under /etc/kloudknox/ to manage the service from the
+# host without a repo checkout:
+#   sudo cp docker-compose.yml /etc/kloudknox/
+#   cd /etc/kloudknox && sudo docker compose up -d
+
+services:
+  kloudknox:
+    image: ghcr.io/boanlab/kloudknox:v0.1.0
+    container_name: kloudknox
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    privileged: true
+    command:
+      - -mode=docker
+      - -dockerEndpoint=unix:///var/run/docker.sock
+      - -policyDir=/etc/kloudknox/policies
+      - -defaultNamespace=docker
+      - -logPath=stdout
+    volumes:
+      # Docker Engine API. KloudKnox only inspects, so read-only is enough.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # BPF / LSM surfaces.
+      - /sys/kernel/security:/sys/kernel/security
+      - /sys/fs/bpf:/sys/fs/bpf:rshared
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      # AppArmor profile loading. Omit on pure BPF-LSM hosts.
+      - /etc/apparmor.d:/etc/apparmor.d
+      # Policy directory watched by PolicyFileLoader.
+      - /etc/kloudknox/policies:/etc/kloudknox/policies:ro
+    cap_add:
+      - SYS_ADMIN
+      - BPF
+      - PERFMON
+      - NET_ADMIN
+      - MAC_ADMIN
+    security_opt:
+      - apparmor=unconfined

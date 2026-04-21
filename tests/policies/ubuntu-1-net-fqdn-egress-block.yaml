@@ -1,0 +1,18 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-net-fqdn-egress-block
+spec:
+  selector:
+    container: ubuntu-1
+  network:
+    - direction: egress
+      fqdn: example.com
+  action: Block
+
+# test
+# $ curl -sI https://example.com
+# curl: (7) Failed to connect to example.com port
+#
+# $ curl -sI https://google.com | head -1
+# HTTP/2 200

@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 BoanLab @ Dankook University
+#
+# Test targets for tests/docker-only/run.sh. Each service carries the
+# kloudknox.e2e=docker-only label so selectors in policies/ can match
+# without colliding with real workloads on the host.
+#
+# AppArmor attachment: Docker's Engine API does not let a plugin inject
+# SecurityOpt (features.md §28), and the profile name is unknown to the
+# compose file before container creation unless pinned. We pin the profile
+# name via the `kloudknox.profile.name` label (consumed by dockerHandler.go)
+# and reference the same name in `security_opt`. `run.sh` pre-creates the
+# stub profile in /etc/apparmor.d before `compose up`; the KloudKnox daemon
+# then rewrites it whenever a policy is applied. Without this, only BPF-path
+# enforcers (network) can fire — file / capability / signal / unix all need
+# the profile to be attached.
+
+services:
+  e2e-nginx:
+    image: nginx:1.25-alpine
+    container_name: e2e-nginx
+    labels:
+      kloudknox.e2e: docker-only
+      app: nginx
+      kloudknox.profile.name: kloudknox-docker-e2e-nginx
+    security_opt:
+      - apparmor=kloudknox-docker-e2e-nginx
+    # pin short-lived but visible so `docker exec` has time to land.
+    command: ["nginx", "-g", "daemon off;"]
+
+  e2e-alpine:
+    image: alpine:3.19
+    container_name: e2e-alpine
+    labels:
+      kloudknox.e2e: docker-only
+      app: alpine
+      kloudknox.profile.name: kloudknox-docker-e2e-alpine
+    security_opt:
+      - apparmor=kloudknox-docker-e2e-alpine
+    # Mount docker.sock read-only so scenario 2 (docker-sock-block) can actually
+    # open the path and be denied by AppArmor — without the bind mount `cat
+    # /var/run/docker.sock` fails with ENOENT before the policy ever evaluates.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: ["sleep", "3600"]
+
+  e2e-ubuntu:
+    image: ubuntu:22.04
+    container_name: e2e-ubuntu
+    labels:
+      kloudknox.e2e: docker-only
+      app: ubuntu
+      kloudknox.profile.name: kloudknox-docker-e2e-ubuntu
+    security_opt:
+      - apparmor=kloudknox-docker-e2e-ubuntu
+    command: ["sleep", "3600"]
+
+  # Attacker for scenario 7 (cross-profile signal enforcement). Shares
+  # e2e-alpine's PID namespace so `kill -SIGNAL <pid>` targets alpine's
+  # processes, but runs under its own AppArmor profile — this breaks the
+  # `signal peer=@{profile_name}` same-profile grant that abstractions/base
+  # includes, letting the allow-list policy actually mediate signals in
+  # the kernel.
+  e2e-attacker:
+    image: alpine:3.19
+    container_name: e2e-attacker
+    pid: "container:e2e-alpine"
+    depends_on:
+      - e2e-alpine
+    labels:
+      kloudknox.e2e: docker-only
+      app: attacker
+      kloudknox.profile.name: kloudknox-docker-e2e-attacker
+    security_opt:
+      - apparmor=kloudknox-docker-e2e-attacker
+    command: ["sleep", "3600"]

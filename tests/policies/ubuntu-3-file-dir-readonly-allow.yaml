@@ -1,0 +1,22 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-file-dir-readonly-allow
+spec:
+  selector:
+    container: ubuntu-3
+  process:
+    - dir: /bin/
+    - dir: /usr/bin/
+  file:
+    - dir: /credentials/
+      readOnly: true
+  action: Allow
+
+# test
+# $ cat /credentials/password
+# password file
+# $ cat /credentials/keys/priv.key
+# cat: /credentials/keys/priv.key: Permission denied
+# $ echo "new password" > /credentials/password
+# bash: /credentials/password: Permission denied

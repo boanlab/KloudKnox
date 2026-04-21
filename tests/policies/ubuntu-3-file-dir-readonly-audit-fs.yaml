@@ -1,0 +1,19 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-3-file-dir-readonly-audit-fs
+spec:
+  selector:
+    container: ubuntu-3
+  file:
+    - dir: /credentials/
+      readOnly: true
+      fromSource:
+      - path: /readwrite
+  action: Audit
+
+# test
+# $ ./readwrite -r /credentials/password
+# p (no log)
+# $ ./readwrite -w /credentials/password
+# (nothing is displayed) (audit)

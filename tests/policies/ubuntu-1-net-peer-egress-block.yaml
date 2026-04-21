@@ -1,0 +1,19 @@
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: ubuntu-1-net-peer-egress-block
+spec:
+  selector:
+    container: ubuntu-1
+  network:
+    - direction: egress
+      selector:
+        container: ubuntu-2
+  action: Block
+
+# test
+# $ curl http://ubuntu-2
+# curl: (7) Failed to connect to ubuntu-2 port
+#
+# $ curl http://ubuntu-3
+# <!DOCTYPE html PUBLIC...

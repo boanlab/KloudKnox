@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+# Scenario 4: network-egress regression (Part II network-enforcer integration).
+# Expected: `docker exec e2e-alpine wget -q -T 2 http://1.1.1.1/` → blocked + alert.
+apiVersion: security.boanlab.com/v1
+kind: KloudKnoxPolicy
+metadata:
+  name: e2e-egress-cloudflare-block
+  namespace: docker
+spec:
+  selector:
+    app: alpine
+    kloudknox.e2e: docker-only
+  network:
+    - direction: egress
+      ipBlock:
+        cidr: 1.1.1.1/32
+      ports:
+        - protocol: TCP
+          port: 80
+      action: Block
+  action: Audit
