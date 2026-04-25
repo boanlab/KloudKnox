@@ -86,6 +86,8 @@ For the Docker-mode install path, see [getting-started/docker-mode.md](getting-s
 kubectl get pods -n kloudknox -o wide
 ```
 
+The DaemonSet tolerates all taints, so an agent pod is scheduled on **every** node — including the control plane. Expect one `kloudknox-<hash>` pod per node, plus the operator and (if installed) the AppArmor webhook and relay-server deployments.
+
 ---
 
 ## Policy Enforcement
