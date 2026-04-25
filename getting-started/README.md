@@ -239,6 +239,8 @@ kubectl port-forward -n kloudknox daemonset/kloudknox 36890:36890 &
 
 You will see a continuous JSON stream of system activity from all containers on the node. Each event includes the process, the operation's target (file path, network peer, capability name, or IPC peer depending on the category), the container identity, and the syscall return code. Press `Ctrl+C` to stop.
 
+> **Note:** `port-forward daemonset/kloudknox` attaches to one agent pod, so you only see events from that node. For cluster-wide streaming see [integrations.md#aggregating-across-nodes](integrations.md#aggregating-across-nodes).
+
 **Filter events by namespace or pod:**
 
 ```bash
@@ -322,8 +324,10 @@ kubectl run demo \
 # Wait for the pod to be running
 kubectl wait --for=condition=ready pod/demo --timeout=60s
 
-# Attempt the blocked operation — this will be denied
-kubectl exec demo -- /bin/sleep 60
+# Attempt the blocked operation through a shell — see the note below
+# for why a direct `kubectl exec demo -- /bin/sleep` does not trigger
+# the AppArmor deny rule.
+kubectl exec demo -- bash -c '/bin/sleep 60'
 ```
 
 The `exec` command will fail. Switch back to the first terminal and confirm the alert appeared (JSON fields use camelCase; PID/UID/GID/PPID/TID are uppercase):
@@ -342,6 +346,8 @@ The `exec` command will fail. Switch back to the first terminal and confirm the 
   "policyAction": "Block"
 }
 ```
+
+> **Note:** The `bash -c` wrapper is needed on the AppArmor fallback path — see [enforcement-with-apparmor.md](enforcement-with-apparmor.md) for the mechanism. The BPF-LSM primary path needs no wrapper.
 
 ---
 
