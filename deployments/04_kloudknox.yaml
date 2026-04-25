@@ -49,7 +49,7 @@ spec:
       containers:
       - name: kloudknox
         image: boanlab/kloudknox:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         args:
         - --logLevel=info
         - --cgroupDir=/mnt/sys/fs/cgroup
