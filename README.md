@@ -86,6 +86,25 @@ For the Docker-mode install path, see [getting-started/docker-mode.md](getting-s
 kubectl get pods -n kloudknox -o wide
 ```
 
+The DaemonSet tolerates all taints, so an agent pod is scheduled on **every** node — including the control plane. Expect one `kloudknox-<hash>` pod per node, plus the operator and (if installed) the AppArmor webhook and relay-server deployments.
+
+### Image versioning
+
+The shipped manifests pin the agent image with the `:latest` tag and `imagePullPolicy: IfNotPresent`. In a multi-node cluster, that combination can leave each node holding a different digest under the same tag (`:latest` is mutable, and once a node has cached the image it will not re-pull). The result is a "works on one node, fails on another" split where some agents run a stale build.
+
+For production, prefer one of:
+
+- **Explicit version tag** — change the image to `boanlab/kloudknox:vX.Y.Z`, and bump the tag in the manifest as part of each release.
+- **Pinned digest** — change the image to `boanlab/kloudknox@sha256:<digest>` for fully reproducible deploys.
+- **`Always` pull** — keep `:latest` but set `imagePullPolicy: Always`. Trades extra pull traffic for tag consistency.
+
+Verify all nodes are running the same digest:
+
+```bash
+kubectl get pods -n kloudknox -l boanlab.com/app=kloudknox \
+  -o jsonpath='{range .items[*]}{.spec.nodeName}{"\t"}{.status.containerStatuses[0].imageID}{"\n"}{end}'
+```
+
 ---
 
 ## Policy Enforcement
