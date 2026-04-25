@@ -239,6 +239,18 @@ kubectl port-forward -n kloudknox daemonset/kloudknox 36890:36890 &
 
 You will see a continuous JSON stream of system activity from all containers on the node. Each event includes the process, the operation's target (file path, network peer, capability name, or IPC peer depending on the category), the container identity, and the syscall return code. Press `Ctrl+C` to stop.
 
+> **Note: Multi-node clusters**
+>
+> The `port-forward` above attaches to one agent pod (whichever the DaemonSet selector picks first), so you only see events from that node. To aggregate events from every node, deploy the [relay-server](https://github.com/boanlab/kloudknox-relay-server) and stream from its single endpoint:
+>
+> ```bash
+> kubectl apply -f https://raw.githubusercontent.com/boanlab/kloudknox-relay-server/main/deployments/relay-server.yaml
+> kubectl port-forward -n kloudknox svc/kloudknox-relay-server 33900:33900 &
+> ../kloudknox-cli/kloudknox-cli/bin/kkctl stream events --server localhost:33900
+> ```
+>
+> See [integrations.md#aggregating-across-nodes](integrations.md#aggregating-across-nodes) for full details.
+
 **Filter events by namespace or pod:**
 
 ```bash
@@ -322,8 +334,10 @@ kubectl run demo \
 # Wait for the pod to be running
 kubectl wait --for=condition=ready pod/demo --timeout=60s
 
-# Attempt the blocked operation — this will be denied
-kubectl exec demo -- /bin/sleep 60
+# Attempt the blocked operation through a shell — see the note below
+# for why a direct `kubectl exec demo -- /bin/sleep` does not trigger
+# the AppArmor deny rule.
+kubectl exec demo -- bash -c '/bin/sleep 60'
 ```
 
 The `exec` command will fail. Switch back to the first terminal and confirm the alert appeared (JSON fields use camelCase; PID/UID/GID/PPID/TID are uppercase):
@@ -342,6 +356,12 @@ The `exec` command will fail. Switch back to the first terminal and confirm the 
   "policyAction": "Block"
 }
 ```
+
+> **Note: Why `bash -c` and not direct exec?**
+>
+> AppArmor's `deny <path> x,` rule fires only when a process **inside** the profile's domain calls `execve` on the path. With `kubectl exec demo -- /bin/sleep`, the new process is spawned by `containerd-shim`, which lives in the `cri-containerd.apparmor.d` profile rather than the kloudknox one, and is allowed to exec arbitrary binaries; the new process inherits the kloudknox profile only **after** the exec completes, so the deny is never evaluated.
+>
+> Real workloads always fork+exec from inside the container (e.g. nginx spawning a CGI script, an app spawning a shell), so wrapping the test in `bash -c` mirrors the actual threat model. See [troubleshooting.md](troubleshooting.md#a-block-rule-does-not-actually-block) for related diagnostics.
 
 ---
 

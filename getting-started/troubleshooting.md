@@ -131,10 +131,11 @@ Run through this order:
    Filters like `--namespaceName=prod` reject everything from other namespaces. Start with no filters, then add them back.
 
 5. **Are you port-forwarded to the wrong node?**
-   `daemonset/kloudknox` picks one pod. If you want a specific node, forward that pod directly:
+   `daemonset/kloudknox` picks one pod, so events from pods on other nodes never reach this stream. To target a specific node, forward that node's agent directly:
    ```bash
    kubectl port-forward -n kloudknox pod/kloudknox-abcde 36890:36890
    ```
+   For cluster-wide streaming, deploy the [relay-server](https://github.com/boanlab/kloudknox-relay-server) and forward its service instead — see [integrations.md#aggregating-across-nodes](integrations.md#aggregating-across-nodes).
 
 ### Alerts never appear even though events do
 
@@ -192,13 +193,21 @@ kkctl policy validate -f my-policy.yaml
 
 ### A `Block` rule does not actually block
 
-The matched operation may be racing with the profile load. Verify with a direct reproducer after the pod has been running for a few seconds:
+Two common causes:
 
-```bash
-kubectl exec <pod> -- /bin/bash
-```
+1. **The test invokes the binary directly through `kubectl exec`.** AppArmor's `deny <path> x,` rule fires only when a process **inside** the kloudknox profile domain calls `execve` on the path. A direct `kubectl exec <pod> -- <binary>` is spawned by `containerd-shim`, which lives in `cri-containerd.apparmor.d` and is allowed to exec arbitrary binaries; the new process inherits the kloudknox profile only after the exec completes, so the deny is never evaluated. Wrap the test in a shell so the spawn happens inside the container, mirroring real workloads:
 
-If the exec still succeeds, stream alerts in a second terminal and try again — the alert stream will show whether the rule matched but returned success (meaning the enforcer path is broken) or whether the event is not being matched at all (meaning the policy/selector is wrong).
+   ```bash
+   kubectl exec <pod> -- bash -c '<binary> <args>'
+   ```
+
+2. **The matched operation raced the profile load.** Profiles are applied at pod creation; a syscall issued in the first few milliseconds may slip through. Retry once the pod has been running for a few seconds, then stream alerts in a second terminal:
+
+   ```bash
+   kubectl exec <pod> -- bash -c '<binary> <args>'
+   ```
+
+If the exec still succeeds after both checks, the alert stream will show whether the rule matched but returned success (meaning the enforcer path is broken) or whether the event is not being matched at all (meaning the policy/selector is wrong).
 
 ---
 
